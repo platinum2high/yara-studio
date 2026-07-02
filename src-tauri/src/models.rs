@@ -87,3 +87,11 @@ pub struct ScanReport {
     pub rule_count: usize,
     pub results: Vec<FileResult>,
 }
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct HexRegion {
+    pub file_size: u64,
+    pub start: u64,
+    pub bytes_hex: String,
+}

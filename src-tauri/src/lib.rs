@@ -9,7 +9,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::validate_rules,
-            commands::scan_paths
+            commands::scan_paths,
+            commands::read_hex_region
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

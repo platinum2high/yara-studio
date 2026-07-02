@@ -65,3 +65,17 @@ export function validateRules(source: string): Promise<ValidationResult> {
 export function scanPaths(source: string, paths: string[]): Promise<ScanReport> {
   return invoke("scan_paths", { source, paths });
 }
+
+export interface HexRegion {
+  fileSize: number;
+  start: number;
+  bytesHex: string;
+}
+
+export function readHexRegion(
+  path: string,
+  start: number,
+  length: number,
+): Promise<HexRegion> {
+  return invoke("read_hex_region", { path, start, length });
+}

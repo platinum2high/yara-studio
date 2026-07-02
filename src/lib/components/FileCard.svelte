@@ -1,10 +1,17 @@
 <script lang="ts">
   import type { FileResult } from "$lib/api";
   import { hexOffset, humanSize, shortHash } from "$lib/format";
+  import FileStripe from "./FileStripe.svelte";
+  import HexViewer from "./HexViewer.svelte";
 
   let { file }: { file: FileResult } = $props();
 
   let copied = $state(false);
+  let expandedMatch = $state<string | null>(null);
+
+  function toggleMatch(key: string) {
+    expandedMatch = expandedMatch === key ? null : key;
+  }
 
   async function copyHash() {
     if (!file.sha256) return;
@@ -36,6 +43,8 @@
     <span class="stat">{humanSize(file.size)}</span>
     <span class="stat">{file.durationMs} ms</span>
   </header>
+
+  <FileStripe size={file.size} ruleMatches={file.ruleMatches} />
 
   {#if file.sha256}
     <button class="hash" onclick={copyHash} title="Copy SHA-256">
@@ -73,8 +82,15 @@
           </thead>
           <tbody>
             {#each rule.stringMatches as m}
-              <tr>
+              {@const key = `${rule.identifier}:${m.identifier}:${m.offset}`}
+              <tr
+                class="match-row"
+                class:open={expandedMatch === key}
+                onclick={() => toggleMatch(key)}
+                title="Click to inspect bytes in file context"
+              >
                 <td class="ident">
+                  <span class="chevron">{expandedMatch === key ? "▾" : "▸"}</span>
                   {m.identifier}
                   {#if m.xorKey !== null}
                     <span class="xor" title="Matched under XOR">
@@ -91,6 +107,17 @@
                 </td>
                 <td class="ascii">{m.matchedAscii}</td>
               </tr>
+              {#if expandedMatch === key}
+                <tr class="hex-row">
+                  <td colspan="4">
+                    <HexViewer
+                      path={file.path}
+                      matchOffset={m.offset}
+                      matchLength={m.length}
+                    />
+                  </td>
+                </tr>
+              {/if}
             {/each}
           </tbody>
         </table>
@@ -269,6 +296,27 @@
     padding: 3px 10px 3px 0;
     vertical-align: top;
     border-top: 1px solid #1e263466;
+  }
+
+  .match-row {
+    cursor: pointer;
+  }
+  .match-row:hover td {
+    background: #12182399;
+  }
+  .match-row.open td {
+    background: #121823;
+  }
+
+  .chevron {
+    color: var(--muted);
+    font-size: 10px;
+    display: inline-block;
+    width: 12px;
+  }
+
+  .hex-row td {
+    padding: 6px 0 8px 12px;
   }
 
   .ident {

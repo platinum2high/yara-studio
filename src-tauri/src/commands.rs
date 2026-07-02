@@ -1,5 +1,5 @@
-use crate::engine::{compiler, scanner};
-use crate::models::{ScanReport, ValidationResult};
+use crate::engine::{compiler, hex, scanner};
+use crate::models::{HexRegion, ScanReport, ValidationResult};
 
 #[tauri::command(async)]
 pub fn validate_rules(source: String) -> ValidationResult {
@@ -24,4 +24,9 @@ pub fn scan_paths(source: String, paths: Vec<String>) -> Result<ScanReport, Stri
     })?;
 
     Ok(scanner::scan_files(&rules, &paths))
+}
+
+#[tauri::command(async)]
+pub fn read_hex_region(path: String, start: u64, length: usize) -> Result<HexRegion, String> {
+    hex::read_region(std::path::Path::new(&path), start, length)
 }
