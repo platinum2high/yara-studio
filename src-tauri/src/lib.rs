@@ -22,6 +22,7 @@ pub fn run() {
             commands::scan_paths,
             commands::cancel_scan,
             commands::read_hex_region,
+            commands::export_report,
             commands::library_list,
             commands::library_save,
             commands::library_read,

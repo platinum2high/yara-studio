@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { cancelScan } from "$lib/api";
+  import { save } from "@tauri-apps/plugin-dialog";
+  import { cancelScan, exportReport } from "$lib/api";
   import { app } from "$lib/state.svelte";
   import { formatTime } from "$lib/format";
   import FileCard from "./FileCard.svelte";
@@ -8,6 +9,26 @@
 
   function cancel() {
     if (app.scanId) cancelScan(app.scanId);
+  }
+
+  async function exportAs(format: "json" | "csv" | "txt") {
+    if (!app.report) return;
+    const stamp = new Date(app.report.startedAtEpochMs)
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "-");
+    const path = await save({
+      title: "Export scan report",
+      defaultPath: `yara-scan-${stamp}.${format}`,
+      filters: [{ name: format.toUpperCase(), extensions: [format] }],
+    });
+    if (!path) return;
+    try {
+      await exportReport(app.report, format, path);
+      app.showFlash("Report exported");
+    } catch (e) {
+      app.showFlash(String(e));
+    }
   }
 </script>
 
@@ -43,6 +64,11 @@
         )}s
       </span>
       <span class="spacer"></span>
+      <span class="export">
+        <button class="ghost" onclick={() => exportAs("json")} title="Export as JSON">JSON</button>
+        <button class="ghost" onclick={() => exportAs("csv")} title="Export as CSV">CSV</button>
+        <button class="ghost" onclick={() => exportAs("txt")} title="Export as plain text">TXT</button>
+      </span>
       <button class="ghost" onclick={() => (app.report = null)}>Clear</button>
     </header>
     {#if app.scanError}
@@ -194,6 +220,16 @@
   }
   .spacer {
     flex: 1;
+  }
+
+  .export {
+    display: flex;
+    gap: 4px;
+  }
+  .export .ghost {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 3px 7px;
   }
 
   .scan-error {

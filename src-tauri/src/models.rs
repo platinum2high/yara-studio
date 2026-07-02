@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +29,7 @@ pub struct ValidationResult {
     pub warnings: Vec<Diagnostic>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StringMatch {
     pub identifier: String,
@@ -43,7 +43,7 @@ pub struct StringMatch {
     pub truncated: bool,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RuleMatch {
     pub identifier: String,
@@ -53,7 +53,7 @@ pub struct RuleMatch {
     pub string_matches: Vec<StringMatch>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub enum FileStatus {
     #[serde(rename = "matched")]
@@ -64,7 +64,7 @@ pub enum FileStatus {
     Error,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FileResult {
     pub path: String,
@@ -77,7 +77,7 @@ pub struct FileResult {
     pub rule_matches: Vec<RuleMatch>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ScanReport {
     pub started_at_epoch_ms: u64,
