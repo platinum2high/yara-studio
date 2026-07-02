@@ -53,6 +53,18 @@
     onkeydown={(e) => e.key === "Enter" && loadEntry(entry.rel)}
     title={entry.description ?? entry.ruleNames.join(", ")}
   >
+    <input
+      type="checkbox"
+      class="scan-check"
+      title="Include in scans"
+      checked={app.scanSet.has(entry.rel)}
+      disabled={!entry.compiles}
+      onclick={(e) => {
+        e.stopPropagation();
+        if (app.scanSet.has(entry.rel)) app.scanSet.delete(entry.rel);
+        else app.scanSet.add(entry.rel);
+      }}
+    />
     <span class="entry-name">
       {#if !entry.compiles}<span class="broken" title="Does not compile">✗</span>{/if}
       {displayName(entry)}
@@ -273,11 +285,40 @@
     font-size: 11px;
   }
 
+  .scan-check {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg0);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+    position: relative;
+  }
+  .scan-check:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .scan-check:checked::after {
+    content: "";
+    position: absolute;
+    inset: 2px 3px 4px;
+    border: solid #1a1405;
+    border-width: 0 0 2px 2px;
+    transform: rotate(-45deg);
+  }
+  .scan-check:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
   .entry {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px 4px 26px;
+    padding: 4px 12px 4px 20px;
     cursor: pointer;
     font-size: 12.5px;
     min-width: 0;

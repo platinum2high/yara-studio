@@ -51,19 +51,39 @@ export interface FileResult {
 
 export interface ScanReport {
   startedAtEpochMs: number;
-  totalFiles: number;
+  durationMs: number;
+  scannedFiles: number;
   matchedFiles: number;
   errorFiles: number;
+  cleanFiles: number;
   ruleCount: number;
+  cancelled: boolean;
+  truncated: boolean;
   results: FileResult[];
+}
+
+export interface ScanProgress {
+  scanId: string;
+  scanned: number;
+  matched: number;
+  currentPath: string;
 }
 
 export function validateRules(source: string): Promise<ValidationResult> {
   return invoke("validate_rules", { source });
 }
 
-export function scanPaths(source: string, paths: string[]): Promise<ScanReport> {
-  return invoke("scan_paths", { source, paths });
+export function scanPaths(
+  source: string,
+  libraryRels: string[],
+  paths: string[],
+  scanId: string,
+): Promise<ScanReport> {
+  return invoke("scan_paths", { source, libraryRels, paths, scanId });
+}
+
+export function cancelScan(scanId: string): Promise<void> {
+  return invoke("cancel_scan", { scanId });
 }
 
 export interface HexRegion {

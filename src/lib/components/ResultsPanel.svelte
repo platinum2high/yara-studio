@@ -1,34 +1,66 @@
 <script lang="ts">
+  import { cancelScan } from "$lib/api";
   import { app } from "$lib/state.svelte";
   import { formatTime } from "$lib/format";
   import FileCard from "./FileCard.svelte";
 
   let { onPickFiles }: { onPickFiles: () => void } = $props();
+
+  function cancel() {
+    if (app.scanId) cancelScan(app.scanId);
+  }
 </script>
 
 <div class="panel">
   {#if app.scanning}
     <div class="center">
       <div class="spinner"></div>
-      <p>Scanning…</p>
+      {#if app.scanProgress}
+        <p class="progress-line">
+          <b>{app.scanProgress.scanned}</b> scanned ·
+          <b class:hot={app.scanProgress.matched > 0}>{app.scanProgress.matched}</b> matched
+        </p>
+        <p class="current-path" title={app.scanProgress.currentPath}>
+          {app.scanProgress.currentPath}
+        </p>
+      {:else}
+        <p>Scanning…</p>
+      {/if}
+      <button class="ghost cancel" onclick={cancel}>Cancel</button>
     </div>
   {:else if app.report}
     {@const r = app.report}
     <header class="summary">
       <span class="time">{formatTime(r.startedAtEpochMs)}</span>
       <span class="counts">
-        {r.totalFiles} file{r.totalFiles === 1 ? "" : "s"} ·
+        {r.scannedFiles} file{r.scannedFiles === 1 ? "" : "s"} ·
         <b class:hot={r.matchedFiles > 0}>{r.matchedFiles} matched</b>
         {#if r.errorFiles > 0}
           · {r.errorFiles} error{r.errorFiles === 1 ? "" : "s"}
         {/if}
-        · {r.ruleCount} rule{r.ruleCount === 1 ? "" : "s"} loaded
+        · {r.ruleCount} rule{r.ruleCount === 1 ? "" : "s"} · {(r.durationMs / 1000).toFixed(
+          r.durationMs < 10000 ? 1 : 0,
+        )}s
       </span>
       <span class="spacer"></span>
       <button class="ghost" onclick={() => (app.report = null)}>Clear</button>
     </header>
     {#if app.scanError}
       <p class="scan-error">{app.scanError}</p>
+    {/if}
+    {#if r.cancelled}
+      <p class="notice">Scan was cancelled — results below are partial.</p>
+    {/if}
+    {#if r.truncated}
+      <p class="notice">Result list truncated to the first 5000 findings.</p>
+    {/if}
+    {#if r.results.length === 0}
+      <div class="center">
+        <p>
+          {r.scannedFiles} file{r.scannedFiles === 1 ? "" : "s"} scanned — no matches, no
+          errors.
+        </p>
+      </div>
     {/if}
     <div class="cards">
       {#each r.results as file (file.path)}
@@ -89,6 +121,41 @@
     width: 64px;
     height: 64px;
     color: #2c3648;
+  }
+
+  .progress-line {
+    margin: 0;
+    font-size: 13px;
+  }
+  .progress-line b {
+    color: var(--text);
+  }
+  .progress-line b.hot {
+    color: var(--red);
+  }
+
+  .current-path {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #4a5568;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cancel {
+    margin-top: 10px;
+  }
+
+  .notice {
+    margin: 0;
+    padding: 8px 14px;
+    color: var(--accent);
+    background: #e8b33910;
+    border-bottom: 1px solid #e8b33930;
+    font-size: 12px;
   }
 
   .spinner {

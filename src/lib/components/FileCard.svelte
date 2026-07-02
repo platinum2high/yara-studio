@@ -58,10 +58,13 @@
     <p class="file-error">{file.error}</p>
   {/if}
 
-  {#each file.ruleMatches as rule (rule.identifier)}
+  {#each file.ruleMatches as rule (`${rule.namespace}:${rule.identifier}`)}
     <section class="rule">
       <div class="rule-head">
         <span class="rule-name">{rule.identifier}</span>
+        {#if rule.namespace !== "editor" && rule.namespace !== "default"}
+          <span class="origin" title="Rule loaded from the library">{rule.namespace}</span>
+        {/if}
         {#each rule.tags as tag}
           <span class="tag">{tag}</span>
         {/each}
@@ -82,7 +85,7 @@
           </thead>
           <tbody>
             {#each rule.stringMatches as m}
-              {@const key = `${rule.identifier}:${m.identifier}:${m.offset}`}
+              {@const key = `${rule.namespace}:${rule.identifier}:${m.identifier}:${m.offset}`}
               <tr
                 class="match-row"
                 class:open={expandedMatch === key}
@@ -258,6 +261,15 @@
     font-weight: 700;
     font-size: 13px;
     color: #7ee787;
+  }
+
+  .origin {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    background: #7d8a9c18;
+    padding: 0 6px;
+    border-radius: 4px;
   }
 
   .tag {

@@ -1,5 +1,6 @@
+import { SvelteSet } from "svelte/reactivity";
 import type { EditorView } from "@codemirror/view";
-import type { LibraryTree, ScanReport, ValidationResult } from "./api";
+import type { LibraryTree, ScanProgress, ScanReport, ValidationResult } from "./api";
 
 export const DEFAULT_RULE = `import "math"
 
@@ -49,6 +50,9 @@ class AppState {
   report = $state<ScanReport | null>(null);
   scanning = $state(false);
   scanError = $state<string | null>(null);
+  scanId = $state<string | null>(null);
+  scanProgress = $state<ScanProgress | null>(null);
+  scanSet = new SvelteSet<string>();
   dragActive = $state(false);
 
   libraryOpen = $state(true);

@@ -12,6 +12,13 @@ import { app, NEW_RULE } from "./state.svelte";
 export async function refreshLibrary() {
   try {
     app.libraryTree = await libraryList();
+    const existing = new Set([
+      ...app.libraryTree.entries.map((e) => e.rel),
+      ...app.libraryTree.collections.flatMap((c) => c.entries.map((e) => e.rel)),
+    ]);
+    for (const rel of [...app.scanSet]) {
+      if (!existing.has(rel)) app.scanSet.delete(rel);
+    }
   } catch (e) {
     app.showFlash(String(e));
   }

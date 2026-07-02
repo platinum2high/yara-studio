@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getCurrentWebview } from "@tauri-apps/api/webview";
+  import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
-  import { scanPaths } from "$lib/api";
+  import { scanPaths, type ScanProgress } from "$lib/api";
   import { app } from "$lib/state.svelte";
   import { saveCurrent, splitRel } from "$lib/library";
   import Editor from "$lib/components/Editor.svelte";
@@ -17,14 +18,19 @@
 
   async function runScan(paths: string[]) {
     if (paths.length === 0) return;
+    const scanId = crypto.randomUUID();
+    app.scanId = scanId;
     app.scanning = true;
     app.scanError = null;
+    app.scanProgress = null;
     try {
-      app.report = await scanPaths(app.source, paths);
+      app.report = await scanPaths(app.source, [...app.scanSet], paths, scanId);
     } catch (e) {
       app.scanError = String(e);
     } finally {
       app.scanning = false;
+      app.scanId = null;
+      app.scanProgress = null;
     }
   }
 
@@ -33,7 +39,19 @@
     if (selection) runScan(selection);
   }
 
+  async function pickDirectory() {
+    const selection = await open({ directory: true, title: "Choose a directory to scan" });
+    if (selection) runScan([selection]);
+  }
+
   onMount(() => {
+    let unlistenProgress: (() => void) | undefined;
+    listen<ScanProgress>("scan-progress", (event) => {
+      if (event.payload.scanId === app.scanId) {
+        app.scanProgress = event.payload;
+      }
+    }).then((fn) => (unlistenProgress = fn));
+
     let unlisten: (() => void) | undefined;
     getCurrentWebview()
       .onDragDropEvent((event) => {
@@ -48,7 +66,10 @@
         }
       })
       .then((fn) => (unlisten = fn));
-    return () => unlisten?.();
+    return () => {
+      unlisten?.();
+      unlistenProgress?.();
+    };
   });
 
   function onKeydown(e: KeyboardEvent) {
@@ -110,12 +131,22 @@
         Save
       </button>
       <button
+        class="save"
+        onclick={pickDirectory}
+        disabled={app.scanning}
+        title="Recursively scan a directory"
+      >
+        Scan directory…
+      </button>
+      <button
         class="scan"
         onclick={pickFiles}
         disabled={app.scanning}
-        title="Scan files against the current rules"
+        title="Scan files against the current rules{app.scanSet.size > 0
+          ? ` + ${app.scanSet.size} library file(s)`
+          : ''}"
       >
-        Scan files…
+        Scan files…{app.scanSet.size > 0 ? ` (+${app.scanSet.size})` : ""}
       </button>
     </div>
   </header>
