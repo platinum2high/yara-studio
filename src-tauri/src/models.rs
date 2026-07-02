@@ -95,3 +95,29 @@ pub struct HexRegion {
     pub start: u64,
     pub bytes_hex: String,
 }
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryEntry {
+    pub rel: String,
+    pub file_name: String,
+    pub rule_names: Vec<String>,
+    pub tags: Vec<String>,
+    pub description: Option<String>,
+    pub compiles: bool,
+    pub modified_epoch_ms: u64,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryCollection {
+    pub name: String,
+    pub entries: Vec<LibraryEntry>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryTree {
+    pub entries: Vec<LibraryEntry>,
+    pub collections: Vec<LibraryCollection>,
+}
