@@ -1,4 +1,5 @@
-import type { ScanReport, ValidationResult } from "./api";
+import type { EditorView } from "@codemirror/view";
+import type { LibraryTree, ScanReport, ValidationResult } from "./api";
 
 export const DEFAULT_RULE = `import "math"
 
@@ -22,6 +23,20 @@ rule SuspiciousBeacon : demo network
 }
 `;
 
+export const NEW_RULE = `rule NewRule
+{
+    meta:
+        author      = ""
+        description = ""
+
+    strings:
+        $a = ""
+
+    condition:
+        $a
+}
+`;
+
 export interface CursorPosition {
   line: number;
   column: number;
@@ -35,6 +50,33 @@ class AppState {
   scanning = $state(false);
   scanError = $state<string | null>(null);
   dragActive = $state(false);
+
+  libraryOpen = $state(true);
+  libraryTree = $state<LibraryTree | null>(null);
+  currentRel = $state<string | null>(null);
+  savedSource = $state<string | null>(null);
+  saveDialogOpen = $state(false);
+  flash = $state<string | null>(null);
+
+  dirty = $derived(this.currentRel !== null && this.source !== this.savedSource);
+
+  // Not reactive on purpose: the CodeMirror view is an imperative handle,
+  // not renderable state.
+  editorView: EditorView | null = null;
+
+  setEditorContent(text: string) {
+    const view = this.editorView;
+    if (!view) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: text },
+    });
+    this.source = text;
+  }
+
+  showFlash(message: string) {
+    this.flash = message;
+    setTimeout(() => (this.flash = null), 2000);
+  }
 }
 
 export const app = new AppState();

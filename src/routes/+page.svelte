@@ -4,8 +4,11 @@
   import { open } from "@tauri-apps/plugin-dialog";
   import { scanPaths } from "$lib/api";
   import { app } from "$lib/state.svelte";
+  import { saveCurrent, splitRel } from "$lib/library";
   import Editor from "$lib/components/Editor.svelte";
+  import LibrarySidebar from "$lib/components/LibrarySidebar.svelte";
   import ResultsPanel from "$lib/components/ResultsPanel.svelte";
+  import SaveDialog from "$lib/components/SaveDialog.svelte";
   import StatusBar from "$lib/components/StatusBar.svelte";
   import DropOverlay from "$lib/components/DropOverlay.svelte";
 
@@ -48,6 +51,17 @@
     return () => unlisten?.();
   });
 
+  function onKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      e.preventDefault();
+      saveCurrent();
+    }
+  }
+
+  const currentName = $derived(
+    app.currentRel === null ? null : splitRel(app.currentRel).name,
+  );
+
   function startResize(event: PointerEvent) {
     event.preventDefault();
     const rect = main.getBoundingClientRect();
@@ -64,17 +78,37 @@
   }
 </script>
 
+<svelte:window onkeydown={onKeydown} />
+
 <div class="shell">
   <header class="topbar">
     <div class="brand">
+      <button
+        class="toggle"
+        title="Toggle library"
+        aria-label="Toggle library"
+        onclick={() => (app.libraryOpen = !app.libraryOpen)}
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M2 3h12M2 8h12M2 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      </button>
       <svg viewBox="0 0 24 24" class="logo" aria-hidden="true">
         <path d="M12 2 21 7v10l-9 5-9-5V7z" fill="none" stroke="var(--accent)" stroke-width="1.6" />
         <path d="M8.5 9 12 12.5 15.5 9M12 12.5V16" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
       <h1>YARA Studio</h1>
       <span class="engine">YARA-X</span>
+      {#if currentName}
+        <span class="current">
+          {currentName}{#if app.dirty}<span class="dirty" title="Unsaved changes">●</span>{/if}
+        </span>
+      {/if}
     </div>
     <div class="actions">
+      <button class="save" onclick={saveCurrent} title="Save to library (⌘S / Ctrl+S)">
+        Save
+      </button>
       <button
         class="scan"
         onclick={pickFiles}
@@ -87,6 +121,9 @@
   </header>
 
   <main bind:this={main}>
+    {#if app.libraryOpen}
+      <LibrarySidebar />
+    {/if}
     <section class="editor-pane" style:width="{editorWidth}%">
       <Editor />
     </section>
@@ -105,6 +142,7 @@
 </div>
 
 <DropOverlay />
+<SaveDialog />
 
 <style>
   .shell {
@@ -129,6 +167,59 @@
     display: flex;
     align-items: center;
     gap: 9px;
+  }
+
+  .toggle {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 5px;
+    display: flex;
+  }
+  .toggle:hover {
+    color: var(--text);
+    background: var(--bg2);
+  }
+  .toggle svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .current {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+
+  .dirty {
+    color: var(--accent);
+    margin-left: 4px;
+    font-size: 10px;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .save {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 5px 13px;
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: var(--font-ui);
+    cursor: pointer;
+  }
+  .save:hover {
+    border-color: #2e3a50;
+    background: var(--bg2);
   }
 
   .logo {
