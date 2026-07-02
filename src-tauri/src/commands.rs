@@ -1,4 +1,9 @@
-use tauri::State;
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, State};
 
 use crate::engine::{compiler, hex, library, scanner};
 use crate::models::{HexRegion, LibraryTree, ScanReport, ValidationResult};
@@ -8,32 +13,81 @@ pub fn validate_rules(source: String) -> ValidationResult {
     compiler::validate(&source)
 }
 
+pub struct LibraryRoot(pub std::path::PathBuf);
+
+#[derive(Default)]
+pub struct ScanRegistry(Mutex<HashMap<String, Arc<AtomicBool>>>);
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct ScanProgressEvent<'a> {
+    scan_id: &'a str,
+    scanned: usize,
+    matched: usize,
+    current_path: &'a str,
+}
+
 #[tauri::command(async)]
-pub fn scan_paths(source: String, paths: Vec<String>) -> Result<ScanReport, String> {
-    if source.trim().is_empty() {
-        return Err("Write a rule before scanning".to_string());
-    }
+pub fn scan_paths(
+    app: AppHandle,
+    registry: State<'_, ScanRegistry>,
+    root: State<'_, LibraryRoot>,
+    source: String,
+    library_rels: Vec<String>,
+    paths: Vec<String>,
+    scan_id: String,
+) -> Result<ScanReport, String> {
     if paths.is_empty() {
         return Err("Nothing to scan".to_string());
     }
 
-    let rules = compiler::compile(&source).map_err(|errors| {
-        format!(
-            "Rules do not compile ({} error{}) — fix them before scanning",
-            errors.len(),
-            if errors.len() == 1 { "" } else { "s" }
-        )
-    })?;
+    let mut sources = Vec::new();
+    if !source.trim().is_empty() {
+        sources.push(("editor".to_string(), source));
+    }
+    for rel in &library_rels {
+        sources.push((rel.clone(), library::read(&root.0, rel)?));
+    }
+    if sources.is_empty() {
+        return Err("Write a rule or pick rules from the library first".to_string());
+    }
 
-    Ok(scanner::scan_files(&rules, &paths))
+    let rules = compiler::compile_set(&sources)?;
+
+    let cancel = Arc::new(AtomicBool::new(false));
+    registry
+        .0
+        .lock()
+        .unwrap()
+        .insert(scan_id.clone(), cancel.clone());
+
+    let report = scanner::run_scan(&rules, &paths, &cancel, |progress| {
+        let _ = app.emit(
+            "scan-progress",
+            ScanProgressEvent {
+                scan_id: &scan_id,
+                scanned: progress.scanned,
+                matched: progress.matched,
+                current_path: progress.current_path,
+            },
+        );
+    });
+
+    registry.0.lock().unwrap().remove(&scan_id);
+    Ok(report)
+}
+
+#[tauri::command]
+pub fn cancel_scan(registry: State<'_, ScanRegistry>, scan_id: String) {
+    if let Some(flag) = registry.0.lock().unwrap().get(&scan_id) {
+        flag.store(true, Ordering::Relaxed);
+    }
 }
 
 #[tauri::command(async)]
 pub fn read_hex_region(path: String, start: u64, length: usize) -> Result<HexRegion, String> {
     hex::read_region(std::path::Path::new(&path), start, length)
 }
-
-pub struct LibraryRoot(pub std::path::PathBuf);
 
 #[tauri::command(async)]
 pub fn library_list(root: State<'_, LibraryRoot>) -> Result<LibraryTree, String> {

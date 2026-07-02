@@ -183,3 +183,27 @@ rule Demo {
         assert!(compile("rule {").is_err());
     }
 }
+
+pub fn compile_set(sources: &[(String, String)]) -> Result<Rules, String> {
+    let mut compiler = Compiler::new();
+    for (origin, source) in sources {
+        compiler.new_namespace(origin);
+        let _ = compiler.add_source(SourceCode::from(source.as_str()).with_origin(origin));
+    }
+    let errors = compiler.errors();
+    if let Some(first) = errors.first() {
+        let origin = first
+            .labels()
+            .next()
+            .and_then(|l| l.origin().map(str::to_string))
+            .unwrap_or_default();
+        return Err(format!(
+            "{} error{} in scan set — first: {} [{}]",
+            errors.len(),
+            if errors.len() == 1 { "" } else { "s" },
+            first.title(),
+            origin
+        ));
+    }
+    Ok(compiler.build())
+}

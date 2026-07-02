@@ -81,10 +81,14 @@ pub struct FileResult {
 #[serde(rename_all = "camelCase")]
 pub struct ScanReport {
     pub started_at_epoch_ms: u64,
-    pub total_files: usize,
+    pub duration_ms: u64,
+    pub scanned_files: usize,
     pub matched_files: usize,
     pub error_files: usize,
+    pub clean_files: usize,
     pub rule_count: usize,
+    pub cancelled: bool,
+    pub truncated: bool,
     pub results: Vec<FileResult>,
 }
 
