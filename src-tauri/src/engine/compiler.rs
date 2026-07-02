@@ -110,13 +110,28 @@ pub fn validate(source: &str) -> ValidationResult {
     }
 }
 
-pub fn compile(source: &str) -> Result<Rules, Vec<Diagnostic>> {
-    let (compiler, errors, _) = run_compiler(source);
-    if errors.is_empty() {
-        Ok(compiler.build())
-    } else {
-        Err(errors)
+pub fn compile_set(sources: &[(String, String)]) -> Result<Rules, String> {
+    let mut compiler = Compiler::new();
+    for (origin, source) in sources {
+        compiler.new_namespace(origin);
+        let _ = compiler.add_source(SourceCode::from(source.as_str()).with_origin(origin));
     }
+    let errors = compiler.errors();
+    if let Some(first) = errors.first() {
+        let origin = first
+            .labels()
+            .next()
+            .and_then(|l| l.origin().map(str::to_string))
+            .unwrap_or_default();
+        return Err(format!(
+            "{} error{} in scan set — first: {} [{}]",
+            errors.len(),
+            if errors.len() == 1 { "" } else { "s" },
+            first.title(),
+            origin
+        ));
+    }
+    Ok(compiler.build())
 }
 
 #[cfg(test)]
@@ -178,32 +193,15 @@ rule Demo {
     }
 
     #[test]
-    fn compile_returns_usable_rules() {
-        assert!(compile(VALID).is_ok());
-        assert!(compile("rule {").is_err());
-    }
-}
+    fn compile_set_merges_sources_under_namespaces() {
+        let sources = vec![
+            ("editor".to_string(), VALID.to_string()),
+            ("lib/other.yar".to_string(), VALID.to_string()),
+        ];
+        let rules = compile_set(&sources).unwrap();
+        assert_eq!(rules.iter().count(), 2);
 
-pub fn compile_set(sources: &[(String, String)]) -> Result<Rules, String> {
-    let mut compiler = Compiler::new();
-    for (origin, source) in sources {
-        compiler.new_namespace(origin);
-        let _ = compiler.add_source(SourceCode::from(source.as_str()).with_origin(origin));
+        let bad = vec![("editor".to_string(), "rule {".to_string())];
+        assert!(compile_set(&bad).is_err());
     }
-    let errors = compiler.errors();
-    if let Some(first) = errors.first() {
-        let origin = first
-            .labels()
-            .next()
-            .and_then(|l| l.origin().map(str::to_string))
-            .unwrap_or_default();
-        return Err(format!(
-            "{} error{} in scan set — first: {} [{}]",
-            errors.len(),
-            if errors.len() == 1 { "" } else { "s" },
-            first.title(),
-            origin
-        ));
-    }
-    Ok(compiler.build())
 }

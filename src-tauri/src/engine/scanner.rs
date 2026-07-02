@@ -272,7 +272,11 @@ pub fn run_scan(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::compiler::compile;
+    use crate::engine::compiler::compile_set;
+
+    fn compile(source: &str) -> Result<yara_x::Rules, String> {
+        compile_set(&[("test".to_string(), source.to_string())])
+    }
 
     const RULE: &str = r#"
 rule FindMarker {
