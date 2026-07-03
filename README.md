@@ -181,6 +181,13 @@ Windows** for every push. Tagging `v*` builds installers for all three OSes.
 
 ---
 
+## 🤝 Contributing
+
+Ideas, bug reports and pull requests are welcome — especially from people who
+run a real SOC/DFIR workflow. See [CONTRIBUTING.md](CONTRIBUTING.md) to get
+started, and browse
+[good first issues](https://github.com/platinum2high/yara-studio/labels/good%20first%20issue).
+
 ## 📜 License
 
 YARA Studio is **dual-licensed**:
