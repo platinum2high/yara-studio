@@ -147,3 +147,11 @@ export function libraryCreateCollection(name: string): Promise<void> {
 export function libraryDeleteCollection(name: string): Promise<void> {
   return invoke("library_delete_collection", { name });
 }
+
+export function exportReport(
+  report: ScanReport,
+  format: "json" | "csv" | "txt",
+  path: string,
+): Promise<void> {
+  return invoke("export_report", { report, format, path });
+}

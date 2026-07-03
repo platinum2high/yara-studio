@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 
-use crate::engine::{compiler, hex, library, scanner};
+use crate::engine::{compiler, export, hex, library, scanner};
 use crate::models::{HexRegion, LibraryTree, ScanReport, ValidationResult};
 
 #[tauri::command(async)]
@@ -82,6 +82,11 @@ pub fn cancel_scan(registry: State<'_, ScanRegistry>, scan_id: String) {
     if let Some(flag) = registry.0.lock().unwrap().get(&scan_id) {
         flag.store(true, Ordering::Relaxed);
     }
+}
+
+#[tauri::command(async)]
+pub fn export_report(report: ScanReport, format: String, path: String) -> Result<(), String> {
+    export::export(&report, &format, &path)
 }
 
 #[tauri::command(async)]
