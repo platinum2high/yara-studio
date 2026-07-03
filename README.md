@@ -49,8 +49,9 @@ telemetry, no cloud. Your rules and your samples never leave the machine.
 |-------------|--------------------|
 | 🍎 **macOS** (Apple Silicon *or* Intel) | `YARA.Studio_x.x.x_universal.dmg` |
 | 🪟 **Windows 10 / 11** | `YARA.Studio_x.x.x_x64-setup.exe` or `.msi` |
-| 🐧 **Linux** (most distros) | `yara-studio_x.x.x_amd64.AppImage` |
-| 🐧 **Debian / Ubuntu** | `yara-studio_x.x.x_amd64.deb` |
+| 🐧 **Linux** (most distros) | `YARA.Studio_x.x.x_amd64.AppImage` |
+| 🐧 **Debian / Ubuntu** | `YARA.Studio_x.x.x_amd64.deb` |
+| 🐧 **Fedora / RHEL** | `YARA.Studio-x.x.x-1.x86_64.rpm` |
 
 **2. Install it:**
 
