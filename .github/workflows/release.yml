@@ -53,5 +53,6 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "YARA Studio ${{ github.ref_name }}"
-          releaseDraft: true
+          releaseDraft: false
+          releaseBody: "See the assets below to download and install. Unsigned build — on macOS right-click → Open; on Windows choose More info → Run anyway."
           args: ${{ matrix.args }}
