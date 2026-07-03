@@ -40,10 +40,14 @@ jobs:
           cache: npm
 
       - name: Install frontend dependencies
-        run: npm ci
+        # retried once: esbuild's postinstall races on Linux runners (ETXTBSY)
+        run: npm ci || npm ci
 
       - name: Typecheck frontend
         run: npm run check
+
+      - name: Frontend tests
+        run: npm test
 
       - name: Rust formatting
         run: cargo fmt --check
