@@ -214,3 +214,37 @@ export function testsRemoveSample(
 export function testsRun(rels: string[]): Promise<LibraryTestReport> {
   return invoke("tests_run", { rels });
 }
+
+export type StringKind = "ascii" | "wide";
+export type StringCategory =
+  | "url"
+  | "ip"
+  | "pdb"
+  | "registry"
+  | "useragent"
+  | "email"
+  | "path"
+  | "plain";
+
+export interface CandidateString {
+  value: string;
+  kind: StringKind;
+  offset: number;
+  count: number;
+  category: StringCategory;
+  score: number;
+}
+
+export interface SampleAnalysis {
+  fileName: string;
+  size: number;
+  sha256: string;
+  entropy: number;
+  fileType: string | null;
+  headerHex: string;
+  strings: CandidateString[];
+}
+
+export function analyzeSample(path: string): Promise<SampleAnalysis> {
+  return invoke("analyze_sample", { path });
+}

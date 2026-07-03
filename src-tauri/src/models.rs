@@ -175,3 +175,52 @@ pub struct LibraryTestReport {
     pub entries_without_tests: usize,
     pub entries: Vec<EntryTestReport>,
 }
+
+#[derive(Serialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum StringKind {
+    Ascii,
+    Wide,
+}
+
+impl std::hash::Hash for StringKind {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        (*self as u8).hash(state);
+    }
+}
+
+#[derive(Serialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum StringCategory {
+    Url,
+    Ip,
+    Pdb,
+    Registry,
+    UserAgent,
+    Email,
+    Path,
+    Plain,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CandidateString {
+    pub value: String,
+    pub kind: StringKind,
+    pub offset: usize,
+    pub count: usize,
+    pub category: StringCategory,
+    pub score: u32,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SampleAnalysis {
+    pub file_name: String,
+    pub size: u64,
+    pub sha256: String,
+    pub entropy: f64,
+    pub file_type: Option<String>,
+    pub header_hex: String,
+    pub strings: Vec<CandidateString>,
+}

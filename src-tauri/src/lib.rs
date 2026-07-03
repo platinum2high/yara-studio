@@ -32,7 +32,8 @@ pub fn run() {
             commands::tests_list,
             commands::tests_add_sample,
             commands::tests_remove_sample,
-            commands::tests_run
+            commands::tests_run,
+            commands::analyze_sample
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

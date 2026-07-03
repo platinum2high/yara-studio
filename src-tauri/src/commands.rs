@@ -5,9 +5,10 @@ use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 
-use crate::engine::{compiler, export, hex, library, rule_tests, scanner};
+use crate::engine::{compiler, export, hex, library, rule_tests, scanner, wizard};
 use crate::models::{
-    HexRegion, LibraryTestReport, LibraryTree, ScanReport, TestKind, TestSamples, ValidationResult,
+    HexRegion, LibraryTestReport, LibraryTree, SampleAnalysis, ScanReport, TestKind, TestSamples,
+    ValidationResult,
 };
 
 #[tauri::command(async)]
@@ -162,4 +163,9 @@ pub fn tests_run(
     rels: Vec<String>,
 ) -> Result<LibraryTestReport, String> {
     rule_tests::run(&root.0, &rels)
+}
+
+#[tauri::command(async)]
+pub fn analyze_sample(path: String) -> Result<SampleAnalysis, String> {
+    wizard::analyze(std::path::Path::new(&path))
 }

@@ -66,6 +66,7 @@ class AppState {
   currentRel = $state<string | null>(null);
   savedSource = $state<string | null>(null);
   saveDialogOpen = $state(false);
+  wizardOpen = $state(false);
   testsRel = $state<string | null>(null);
   testsReport = $state<LibraryTestReport | null>(null);
   flash = $state<string | null>(null);
