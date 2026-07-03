@@ -17,15 +17,17 @@ fn validate_name(name: &str) -> Result<(), String> {
 }
 
 fn resolve(root: &Path, rel: &str) -> Result<PathBuf, String> {
+    let mut path = root.to_path_buf();
     for part in Path::new(rel).components() {
         match part {
             std::path::Component::Normal(c) => {
                 validate_name(&c.to_string_lossy())?;
+                path.push(c);
             }
             _ => return Err(format!("Invalid path: {rel}")),
         }
     }
-    Ok(root.join(rel))
+    Ok(path)
 }
 
 struct ParsedSource {
@@ -101,7 +103,13 @@ fn parse_source(source: &str) -> ParsedSource {
 fn entry_from_file(root: &Path, path: &Path) -> Option<LibraryEntry> {
     let source = std::fs::read_to_string(path).ok()?;
     let parsed = parse_source(&source);
-    let rel = path.strip_prefix(root).ok()?.to_string_lossy().into_owned();
+    // rel is a logical key shared with the frontend, so it always uses
+    // forward slashes regardless of the host path separator.
+    let rel = path
+        .strip_prefix(root)
+        .ok()?
+        .to_string_lossy()
+        .replace('\\', "/");
     let modified_epoch_ms = std::fs::metadata(path)
         .ok()
         .and_then(|m| m.modified().ok())
@@ -206,7 +214,7 @@ pub fn save(
         .strip_prefix(root)
         .map_err(|_| "Path escaped library root".to_string())?
         .to_string_lossy()
-        .into_owned())
+        .replace('\\', "/"))
 }
 
 pub fn read(root: &Path, rel: &str) -> Result<String, String> {
@@ -262,6 +270,7 @@ rule LibDemo : trojan win32 {
         let root = temp_root("roundtrip");
 
         let rel = save(&root, Some("apt"), "demo", RULE).unwrap();
+        // rel is always forward-slashed, even on Windows.
         assert_eq!(rel, "apt/demo.yar");
 
         let tree = list(&root).unwrap();
