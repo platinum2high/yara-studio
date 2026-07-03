@@ -1,6 +1,12 @@
 import { SvelteSet } from "svelte/reactivity";
 import type { EditorView } from "@codemirror/view";
-import type { LibraryTree, ScanProgress, ScanReport, ValidationResult } from "./api";
+import type {
+  LibraryTestReport,
+  LibraryTree,
+  ScanProgress,
+  ScanReport,
+  ValidationResult,
+} from "./api";
 
 export const DEFAULT_RULE = `import "math"
 
@@ -60,6 +66,9 @@ class AppState {
   currentRel = $state<string | null>(null);
   savedSource = $state<string | null>(null);
   saveDialogOpen = $state(false);
+  wizardOpen = $state(false);
+  testsRel = $state<string | null>(null);
+  testsReport = $state<LibraryTestReport | null>(null);
   flash = $state<string | null>(null);
 
   dirty = $derived(this.currentRel !== null && this.source !== this.savedSource);

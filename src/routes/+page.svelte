@@ -10,6 +10,9 @@
   import LibrarySidebar from "$lib/components/LibrarySidebar.svelte";
   import ResultsPanel from "$lib/components/ResultsPanel.svelte";
   import SaveDialog from "$lib/components/SaveDialog.svelte";
+  import TestsDialog from "$lib/components/TestsDialog.svelte";
+  import TestReportDialog from "$lib/components/TestReportDialog.svelte";
+  import WizardDialog from "$lib/components/WizardDialog.svelte";
   import StatusBar from "$lib/components/StatusBar.svelte";
   import DropOverlay from "$lib/components/DropOverlay.svelte";
 
@@ -127,6 +130,13 @@
       {/if}
     </div>
     <div class="actions">
+      <button
+        class="save"
+        onclick={() => (app.wizardOpen = true)}
+        title="Generate a rule from a sample file"
+      >
+        Wizard
+      </button>
       <button class="save" onclick={saveCurrent} title="Save to library (⌘S / Ctrl+S)">
         Save
       </button>
@@ -174,6 +184,9 @@
 
 <DropOverlay />
 <SaveDialog />
+<TestsDialog />
+<TestReportDialog />
+<WizardDialog />
 
 <style>
   .shell {
