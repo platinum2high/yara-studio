@@ -28,7 +28,11 @@ pub fn run() {
             commands::library_read,
             commands::library_delete,
             commands::library_create_collection,
-            commands::library_delete_collection
+            commands::library_delete_collection,
+            commands::tests_list,
+            commands::tests_add_sample,
+            commands::tests_remove_sample,
+            commands::tests_run
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

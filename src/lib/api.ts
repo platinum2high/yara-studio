@@ -155,3 +155,62 @@ export function exportReport(
 ): Promise<void> {
   return invoke("export_report", { report, format, path });
 }
+
+export type TestKind = "match" | "no-match";
+
+export interface TestSample {
+  fileName: string;
+  size: number;
+}
+
+export interface TestSamples {
+  expectMatch: TestSample[];
+  expectNoMatch: TestSample[];
+}
+
+export interface SampleResult {
+  fileName: string;
+  kind: TestKind;
+  passed: boolean;
+  matchedRules: string[];
+  error: string | null;
+}
+
+export interface EntryTestReport {
+  rel: string;
+  compileError: string | null;
+  results: SampleResult[];
+  passed: number;
+  failed: number;
+}
+
+export interface LibraryTestReport {
+  totalPassed: number;
+  totalFailed: number;
+  entriesWithoutTests: number;
+  entries: EntryTestReport[];
+}
+
+export function testsList(rel: string): Promise<TestSamples> {
+  return invoke("tests_list", { rel });
+}
+
+export function testsAddSample(
+  rel: string,
+  kind: TestKind,
+  sourcePath: string,
+): Promise<void> {
+  return invoke("tests_add_sample", { rel, kind, sourcePath });
+}
+
+export function testsRemoveSample(
+  rel: string,
+  kind: TestKind,
+  fileName: string,
+): Promise<void> {
+  return invoke("tests_remove_sample", { rel, kind, fileName });
+}
+
+export function testsRun(rels: string[]): Promise<LibraryTestReport> {
+  return invoke("tests_run", { rels });
+}

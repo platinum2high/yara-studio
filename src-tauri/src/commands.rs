@@ -5,8 +5,10 @@ use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
 
-use crate::engine::{compiler, export, hex, library, scanner};
-use crate::models::{HexRegion, LibraryTree, ScanReport, ValidationResult};
+use crate::engine::{compiler, export, hex, library, rule_tests, scanner};
+use crate::models::{
+    HexRegion, LibraryTestReport, LibraryTree, ScanReport, TestKind, TestSamples, ValidationResult,
+};
 
 #[tauri::command(async)]
 pub fn validate_rules(source: String) -> ValidationResult {
@@ -127,4 +129,37 @@ pub fn library_create_collection(root: State<'_, LibraryRoot>, name: String) -> 
 #[tauri::command(async)]
 pub fn library_delete_collection(root: State<'_, LibraryRoot>, name: String) -> Result<(), String> {
     library::delete_collection(&root.0, &name)
+}
+
+#[tauri::command(async)]
+pub fn tests_list(root: State<'_, LibraryRoot>, rel: String) -> Result<TestSamples, String> {
+    rule_tests::list_samples(&root.0, &rel)
+}
+
+#[tauri::command(async)]
+pub fn tests_add_sample(
+    root: State<'_, LibraryRoot>,
+    rel: String,
+    kind: TestKind,
+    source_path: String,
+) -> Result<(), String> {
+    rule_tests::add_sample(&root.0, &rel, kind, &source_path)
+}
+
+#[tauri::command(async)]
+pub fn tests_remove_sample(
+    root: State<'_, LibraryRoot>,
+    rel: String,
+    kind: TestKind,
+    file_name: String,
+) -> Result<(), String> {
+    rule_tests::remove_sample(&root.0, &rel, kind, &file_name)
+}
+
+#[tauri::command(async)]
+pub fn tests_run(
+    root: State<'_, LibraryRoot>,
+    rels: Vec<String>,
+) -> Result<LibraryTestReport, String> {
+    rule_tests::run(&root.0, &rels)
 }

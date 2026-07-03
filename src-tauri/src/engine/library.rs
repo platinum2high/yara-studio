@@ -16,7 +16,7 @@ fn validate_name(name: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn resolve(root: &Path, rel: &str) -> Result<PathBuf, String> {
+pub(crate) fn resolve(root: &Path, rel: &str) -> Result<PathBuf, String> {
     let mut path = root.to_path_buf();
     for part in Path::new(rel).components() {
         match part {
@@ -166,7 +166,7 @@ pub fn list(root: &Path) -> Result<LibraryTree, String> {
         .iter()
         .filter_map(|dir| {
             let name = dir.file_name()?.to_string_lossy().into_owned();
-            if name.starts_with('.') {
+            if name.starts_with('.') || name.ends_with(".tests") {
                 return None;
             }
             Some(LibraryCollection {

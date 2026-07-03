@@ -125,3 +125,53 @@ pub struct LibraryTree {
     pub entries: Vec<LibraryEntry>,
     pub collections: Vec<LibraryCollection>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum TestKind {
+    Match,
+    NoMatch,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TestSample {
+    pub file_name: String,
+    pub size: u64,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TestSamples {
+    pub expect_match: Vec<TestSample>,
+    pub expect_no_match: Vec<TestSample>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SampleResult {
+    pub file_name: String,
+    pub kind: TestKind,
+    pub passed: bool,
+    pub matched_rules: Vec<String>,
+    pub error: Option<String>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct EntryTestReport {
+    pub rel: String,
+    pub compile_error: Option<String>,
+    pub results: Vec<SampleResult>,
+    pub passed: usize,
+    pub failed: usize,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryTestReport {
+    pub total_passed: usize,
+    pub total_failed: usize,
+    pub entries_without_tests: usize,
+    pub entries: Vec<EntryTestReport>,
+}

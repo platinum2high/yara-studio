@@ -9,9 +9,22 @@
     newRule,
     refreshLibrary,
   } from "$lib/library";
+  import { testsRun } from "$lib/api";
   import { app } from "$lib/state.svelte";
 
   let query = $state("");
+  let runningAll = $state(false);
+
+  async function runAllTests() {
+    runningAll = true;
+    try {
+      app.testsReport = await testsRun([]);
+    } catch (e) {
+      app.showFlash(String(e));
+    } finally {
+      runningAll = false;
+    }
+  }
   let newCollectionMode = $state(false);
   let newCollectionName = $state("");
   let collapsed = $state<Record<string, boolean>>({});
@@ -78,6 +91,14 @@
     {/if}
     <button
       class="row-action"
+      title="Regression tests"
+      onclick={(e) => {
+        e.stopPropagation();
+        app.testsRel = entry.rel;
+      }}>⚗</button
+    >
+    <button
+      class="row-action"
       title="Delete rule"
       onclick={(e) => {
         e.stopPropagation();
@@ -91,6 +112,9 @@
   <header>
     <span class="title">Library</span>
     <span class="spacer"></span>
+    <button class="icon" title="Run all rule tests" onclick={runAllTests} disabled={runningAll}>
+      {runningAll ? "…" : "⚗"}
+    </button>
     <button class="icon" title="New rule" onclick={newRule}>＋</button>
     <button
       class="icon"
@@ -214,6 +238,9 @@
   .icon:hover {
     color: var(--text);
     background: var(--bg2);
+  }
+  .icon:disabled {
+    opacity: 0.5;
   }
 
   .search {

@@ -10,6 +10,8 @@
   import LibrarySidebar from "$lib/components/LibrarySidebar.svelte";
   import ResultsPanel from "$lib/components/ResultsPanel.svelte";
   import SaveDialog from "$lib/components/SaveDialog.svelte";
+  import TestsDialog from "$lib/components/TestsDialog.svelte";
+  import TestReportDialog from "$lib/components/TestReportDialog.svelte";
   import StatusBar from "$lib/components/StatusBar.svelte";
   import DropOverlay from "$lib/components/DropOverlay.svelte";
 
@@ -174,6 +176,8 @@
 
 <DropOverlay />
 <SaveDialog />
+<TestsDialog />
+<TestReportDialog />
 
 <style>
   .shell {
