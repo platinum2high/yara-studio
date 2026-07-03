@@ -18,6 +18,10 @@
     <span class="status warn">⚠ {app.validation.warnings.length}</span>
   {/if}
 
+  {#if app.flash}
+    <span class="flash">{app.flash}</span>
+  {/if}
+
   <span class="spacer"></span>
 
   <span class="item">Ln {app.cursor.line}, Col {app.cursor.column}</span>
@@ -56,6 +60,11 @@
   }
   .status.pending {
     color: var(--muted);
+  }
+
+  .flash {
+    color: var(--accent);
+    font-weight: 600;
   }
 
   .spacer {

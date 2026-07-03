@@ -98,7 +98,12 @@
       parent: container,
     });
 
-    return () => view.destroy();
+    app.editorView = view;
+
+    return () => {
+      app.editorView = null;
+      view.destroy();
+    };
   });
 </script>
 

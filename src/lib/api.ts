@@ -51,19 +51,39 @@ export interface FileResult {
 
 export interface ScanReport {
   startedAtEpochMs: number;
-  totalFiles: number;
+  durationMs: number;
+  scannedFiles: number;
   matchedFiles: number;
   errorFiles: number;
+  cleanFiles: number;
   ruleCount: number;
+  cancelled: boolean;
+  truncated: boolean;
   results: FileResult[];
+}
+
+export interface ScanProgress {
+  scanId: string;
+  scanned: number;
+  matched: number;
+  currentPath: string;
 }
 
 export function validateRules(source: string): Promise<ValidationResult> {
   return invoke("validate_rules", { source });
 }
 
-export function scanPaths(source: string, paths: string[]): Promise<ScanReport> {
-  return invoke("scan_paths", { source, paths });
+export function scanPaths(
+  source: string,
+  libraryRels: string[],
+  paths: string[],
+  scanId: string,
+): Promise<ScanReport> {
+  return invoke("scan_paths", { source, libraryRels, paths, scanId });
+}
+
+export function cancelScan(scanId: string): Promise<void> {
+  return invoke("cancel_scan", { scanId });
 }
 
 export interface HexRegion {
@@ -78,4 +98,52 @@ export function readHexRegion(
   length: number,
 ): Promise<HexRegion> {
   return invoke("read_hex_region", { path, start, length });
+}
+
+export interface LibraryEntry {
+  rel: string;
+  fileName: string;
+  ruleNames: string[];
+  tags: string[];
+  description: string | null;
+  compiles: boolean;
+  modifiedEpochMs: number;
+}
+
+export interface LibraryCollection {
+  name: string;
+  entries: LibraryEntry[];
+}
+
+export interface LibraryTree {
+  entries: LibraryEntry[];
+  collections: LibraryCollection[];
+}
+
+export function libraryList(): Promise<LibraryTree> {
+  return invoke("library_list");
+}
+
+export function librarySave(
+  collection: string | null,
+  name: string,
+  source: string,
+): Promise<string> {
+  return invoke("library_save", { collection, name, source });
+}
+
+export function libraryRead(rel: string): Promise<string> {
+  return invoke("library_read", { rel });
+}
+
+export function libraryDelete(rel: string): Promise<void> {
+  return invoke("library_delete", { rel });
+}
+
+export function libraryCreateCollection(name: string): Promise<void> {
+  return invoke("library_create_collection", { name });
+}
+
+export function libraryDeleteCollection(name: string): Promise<void> {
+  return invoke("library_delete_collection", { name });
 }

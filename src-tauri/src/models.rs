@@ -81,10 +81,14 @@ pub struct FileResult {
 #[serde(rename_all = "camelCase")]
 pub struct ScanReport {
     pub started_at_epoch_ms: u64,
-    pub total_files: usize,
+    pub duration_ms: u64,
+    pub scanned_files: usize,
     pub matched_files: usize,
     pub error_files: usize,
+    pub clean_files: usize,
     pub rule_count: usize,
+    pub cancelled: bool,
+    pub truncated: bool,
     pub results: Vec<FileResult>,
 }
 
@@ -94,4 +98,30 @@ pub struct HexRegion {
     pub file_size: u64,
     pub start: u64,
     pub bytes_hex: String,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryEntry {
+    pub rel: String,
+    pub file_name: String,
+    pub rule_names: Vec<String>,
+    pub tags: Vec<String>,
+    pub description: Option<String>,
+    pub compiles: bool,
+    pub modified_epoch_ms: u64,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryCollection {
+    pub name: String,
+    pub entries: Vec<LibraryEntry>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryTree {
+    pub entries: Vec<LibraryEntry>,
+    pub collections: Vec<LibraryCollection>,
 }
