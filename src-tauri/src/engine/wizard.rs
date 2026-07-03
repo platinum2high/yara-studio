@@ -35,7 +35,10 @@ fn detect_file_type(data: &[u8]) -> Option<String> {
         (b"\x7fELF", "ELF executable"),
         (b"\xfe\xed\xfa\xce", "Mach-O (32-bit)"),
         (b"\xfe\xed\xfa\xcf", "Mach-O (64-bit)"),
+        (b"\xce\xfa\xed\xfe", "Mach-O (32-bit, LE)"),
         (b"\xcf\xfa\xed\xfe", "Mach-O (64-bit, LE)"),
+        (b"\xca\xfe\xba\xbe", "Mach-O universal binary"),
+        (b"\xbe\xba\xfe\xca", "Mach-O universal binary (LE)"),
         (b"PK\x03\x04", "ZIP archive (also docx/jar/apk)"),
         (b"%PDF", "PDF document"),
         (b"\x1f\x8b", "gzip archive"),
@@ -290,6 +293,27 @@ mod tests {
         assert_eq!(repeated.count, 2);
 
         std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn detects_common_magic_including_fat_macho() {
+        assert_eq!(
+            detect_file_type(b"\xca\xfe\xba\xbe\x00\x00").as_deref(),
+            Some("Mach-O universal binary")
+        );
+        assert_eq!(
+            detect_file_type(b"\xcf\xfa\xed\xfe...").as_deref(),
+            Some("Mach-O (64-bit, LE)")
+        );
+        assert_eq!(
+            detect_file_type(b"MZ\x90\x00").as_deref(),
+            Some("PE executable (MZ)")
+        );
+        assert_eq!(
+            detect_file_type(b"\x7fELF\x02").as_deref(),
+            Some("ELF executable")
+        );
+        assert!(detect_file_type(b"random bytes").is_none());
     }
 
     #[test]
