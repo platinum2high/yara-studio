@@ -3,7 +3,7 @@ name = "yara-studio"
 version = "0.1.0"
 description = "Offline desktop studio for writing, testing and managing YARA rules"
 authors = ["Artem Shymko"]
-license = "MIT"
+license = "AGPL-3.0-only"
 repository = "https://github.com/platinum2high/yara-studio"
 edition = "2021"
 
